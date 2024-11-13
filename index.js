@@ -2,12 +2,14 @@ const express = require('express');
 const bodyParser = require('body-parser');
 
 const app = express();
+
+// Middleware untuk parsing JSON pada body permintaan
 app.use(bodyParser.json());
 
 // Port dari environment variable (untuk deployment) atau default ke 4000
 const PORT = process.env.PORT || 4000;
 
-// Tambahkan halaman tampilan untuk root URL
+// Halaman tampilan untuk root URL
 app.get('/', (req, res) => {
     res.send(`
         <html>
@@ -27,7 +29,7 @@ app.get('/', (req, res) => {
     `);
 });
 
-// Verifikasi Token saat Setup
+// Endpoint untuk verifikasi webhook saat setup
 app.get('/webhook', (req, res) => {
     const VERIFY_TOKEN = 'secure_token_123';
 
@@ -35,17 +37,21 @@ app.get('/webhook', (req, res) => {
     const token = req.query['hub.verify_token'];
     const challenge = req.query['hub.challenge'];
 
-    if (mode && token === VERIFY_TOKEN) {
+    // Periksa token dan mode
+    if (mode === 'subscribe' && token === VERIFY_TOKEN) {
         console.log("WEBHOOK_VERIFIED");
-        res.status(200).send(challenge);
+        res.status(200).send(challenge); // Kirim challenge kembali untuk verifikasi
     } else {
-        res.sendStatus(403);
+        res.sendStatus(403); // Token salah atau mode tidak sesuai
     }
 });
 
-// Endpoint untuk menerima notifikasi
+// Endpoint untuk menerima notifikasi webhook
 app.post('/webhook', (req, res) => {
-    console.log('Webhook event received:', req.body);
+    // Log payload yang diterima
+    console.log('Webhook event received:', JSON.stringify(req.body, null, 2));
+
+    // Kirim respons sukses ke Meta
     res.sendStatus(200);
 });
 
