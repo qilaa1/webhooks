@@ -1,5 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const fetch = require('node-fetch'); // Untuk melakukan request HTTP
 
 const app = express();
 
@@ -47,12 +48,38 @@ app.get('/webhook', (req, res) => {
 });
 
 // Endpoint untuk menerima notifikasi webhook
-app.post('/webhook', (req, res) => {
-    // Log payload yang diterima
-    console.log('Webhook event received:', JSON.stringify(req.body, null, 2));
+app.post('/webhook', async (req, res) => {
+    try {
+        // Ambil data dari perubahan yang diterima
+        const changes = req.body.entry[0].changes;
 
-    // Kirim respons sukses ke Meta
-    res.sendStatus(200);
+        // Proses setiap perubahan (field `comments`)
+        for (const change of changes) {
+            if (change.field === 'comments') {
+                const commentId = change.value.id; // ID komentar baru
+                const replyMessage = "Terima kasih atas komentarnya!"; // Pesan balasan
+
+                // Kirim balasan otomatis ke komentar
+                const response = await fetch(`https://graph.facebook.com/v21.0/${commentId}/replies`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: replyMessage,
+                        access_token: 'EAA15VDr6ZCaMBO8xoVlIZC6Te2JHSztNufxzrNm9ecn2s208vEAGh99533nx4ORg6p5xnARiMiXeXgrnyWZCAhZAWZBVQ4kLfuM8yZAkFYQNBO1hE88v4X08X2XZC0KydDMBRZA3xZCOgrYnNkZBNHUz0kqy0npvrZACr4FVptHdN3ZBWOTXwRxJJF9bOkEp2NhGT0dGU9Y7ZB8DtwDWEZAkfvqG9vSMtmFQZDZD' // Ganti dengan Access Token Anda
+                    })
+                });
+
+                const data = await response.json();
+                console.log('Reply sent:', data);
+            }
+        }
+
+        // Kirim respons sukses ke Meta
+        res.sendStatus(200);
+    } catch (error) {
+        console.error('Error handling webhook event:', error);
+        res.sendStatus(500); // Kirim respons error jika terjadi masalah
+    }
 });
 
 // Jalankan server
