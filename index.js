@@ -13,7 +13,7 @@ app.get('/', (req, res) => {
             </head>
             <body>
                 <h1>Instagram Webhook Server</h1>
-                <p>Use this server for handling Instagram API webhooks.</p>
+                <p>server for handling Instagram API webhooks.</p>
                 <p>Endpoints:</p>
                 <ul>
                     <li>GET /webhook - <i>Webhook verification</i></li>
