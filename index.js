@@ -1,13 +1,12 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const fetch = require('node-fetch'); // Untuk melakukan request HTTP
+const fetch = require('node-fetch'); // Pastikan versi node-fetch yang mendukung require
 
 const app = express();
 
 // Middleware untuk parsing JSON pada body permintaan
 app.use(bodyParser.json());
 
-// Port dari environment variable (untuk deployment) atau default ke 4000
 const PORT = process.env.PORT || 4000;
 
 // Halaman tampilan untuk root URL
