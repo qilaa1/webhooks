@@ -1,6 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const fetch = require('node-fetch'); // Pastikan versi node-fetch yang mendukung require
+const fetch = require('node-fetch'); // Pastikan menggunakan node-fetch versi 2
 
 const app = express();
 
@@ -8,13 +8,15 @@ const app = express();
 app.use(bodyParser.json());
 
 const PORT = process.env.PORT || 4000;
+const VERIFY_TOKEN = process.env.VERIFY_TOKEN || 'secure_token_123'; // Gunakan environment variable untuk token
+const ACCESS_TOKEN = process.env.ACCESS_TOKEN || 'EAA15VDr6ZCaMBO2wqiOGTZCPWD9UVLRZCDWBkcbnXfmLqaBEW7NWTqwyNxTwnqPu5lbUlXes8JpOD9XmBZC2FD5nsXyh3KWILjaz3loQX2Tx2J66d3mfysbfth1NotZCKH3aAsAOpMGsAoWkIvncnZBBNNwrjxzLq5i4nFWbzLK4cM6YbpXH2E0RYyGCJxVyplIdZCfRqIVIMRsqxY5ZAS11mp3v1wZDZD'; // Simpan Access Token di environment variable
 
 // Halaman tampilan untuk root URL
 app.get('/', (req, res) => {
     res.send(`
         <html>
             <head>
-                <title>Webhook Server</title>
+                <title>Instagram Webhook Server</title>
             </head>
             <body>
                 <h1>Instagram Webhook Server</h1>
@@ -31,8 +33,6 @@ app.get('/', (req, res) => {
 
 // Endpoint untuk verifikasi webhook saat setup
 app.get('/webhook', (req, res) => {
-    const VERIFY_TOKEN = 'secure_token_123';
-
     const mode = req.query['hub.mode'];
     const token = req.query['hub.verify_token'];
     const challenge = req.query['hub.challenge'];
@@ -42,6 +42,7 @@ app.get('/webhook', (req, res) => {
         console.log("WEBHOOK_VERIFIED");
         res.status(200).send(challenge); // Kirim challenge kembali untuk verifikasi
     } else {
+        console.error("WEBHOOK_VERIFICATION_FAILED");
         res.sendStatus(403); // Token salah atau mode tidak sesuai
     }
 });
@@ -49,8 +50,18 @@ app.get('/webhook', (req, res) => {
 // Endpoint untuk menerima notifikasi webhook
 app.post('/webhook', async (req, res) => {
     try {
-        // Ambil data dari perubahan yang diterima
+        console.log('Webhook event received:', JSON.stringify(req.body, null, 2));
+
+        if (!req.body || !req.body.entry) {
+            console.error("Invalid webhook payload");
+            return res.sendStatus(400);
+        }
+
         const changes = req.body.entry[0].changes;
+        if (!changes) {
+            console.error("No changes found in webhook payload");
+            return res.sendStatus(400);
+        }
 
         // Proses setiap perubahan (field `comments`)
         for (const change of changes) {
@@ -58,18 +69,25 @@ app.post('/webhook', async (req, res) => {
                 const commentId = change.value.id; // ID komentar baru
                 const replyMessage = "Terima kasih atas komentarnya!"; // Pesan balasan
 
+                console.log(`Processing comment ID: ${commentId}`);
+
                 // Kirim balasan otomatis ke komentar
                 const response = await fetch(`https://graph.facebook.com/v21.0/${commentId}/replies`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         message: replyMessage,
-                        access_token: 'EAA15VDr6ZCaMBO8xoVlIZC6Te2JHSztNufxzrNm9ecn2s208vEAGh99533nx4ORg6p5xnARiMiXeXgrnyWZCAhZAWZBVQ4kLfuM8yZAkFYQNBO1hE88v4X08X2XZC0KydDMBRZA3xZCOgrYnNkZBNHUz0kqy0npvrZACr4FVptHdN3ZBWOTXwRxJJF9bOkEp2NhGT0dGU9Y7ZB8DtwDWEZAkfvqG9vSMtmFQZDZD' // Ganti dengan Access Token Anda
+                        access_token: ACCESS_TOKEN // Access Token diambil dari environment variable
                     })
                 });
 
                 const data = await response.json();
-                console.log('Reply sent:', data);
+
+                if (response.ok) {
+                    console.log('Reply sent successfully:', data);
+                } else {
+                    console.error('Error sending reply:', data.error);
+                }
             }
         }
 
