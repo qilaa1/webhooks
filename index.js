@@ -4,6 +4,9 @@ const bodyParser = require('body-parser');
 const app = express();
 app.use(bodyParser.json());
 
+// Port dari environment variable (untuk deployment) atau default ke 4000
+const PORT = process.env.PORT || 4000;
+
 // Tambahkan halaman tampilan untuk root URL
 app.get('/', (req, res) => {
     res.send(`
@@ -13,7 +16,7 @@ app.get('/', (req, res) => {
             </head>
             <body>
                 <h1>Instagram Webhook Server</h1>
-                <p>server for handling Instagram API webhooks.</p>
+                <p>Server for handling Instagram API webhooks.</p>
                 <p>Endpoints:</p>
                 <ul>
                     <li>GET /webhook - <i>Webhook verification</i></li>
@@ -47,7 +50,6 @@ app.post('/webhook', (req, res) => {
 });
 
 // Jalankan server
-const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Webhook server is running on port ${PORT}`);
 });

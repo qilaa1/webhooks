@@ -7,7 +7,8 @@
     "express": "^4.21.1"
   },
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "build": "echo 'Skipping build step for Node.js server.'"
   },
   "devDependencies": {},
   "keywords": [],
