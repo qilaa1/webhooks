@@ -4,6 +4,26 @@ const bodyParser = require('body-parser');
 const app = express();
 app.use(bodyParser.json());
 
+// Tambahkan halaman tampilan untuk root URL
+app.get('/', (req, res) => {
+    res.send(`
+        <html>
+            <head>
+                <title>Webhook Server</title>
+            </head>
+            <body>
+                <h1>Instagram Webhook Server</h1>
+                <p>Use this server for handling Instagram API webhooks.</p>
+                <p>Endpoints:</p>
+                <ul>
+                    <li>GET /webhook - <i>Webhook verification</i></li>
+                    <li>POST /webhook - <i>Receive webhook events</i></li>
+                </ul>
+            </body>
+        </html>
+    `);
+});
+
 // Verifikasi Token saat Setup
 app.get('/webhook', (req, res) => {
     const VERIFY_TOKEN = 'secure_token_123';
