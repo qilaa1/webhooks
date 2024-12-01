@@ -76,31 +76,33 @@ app.post('/webhook', async (req, res) => {
     // Kirim response ke Instagram (500 OK)
     res.sendStatus(200);
 });
-
-// Fungsi untuk mengirim balasan komentar
-async function sendCommentReply(mediaId, commentId, replyText) {
-    const url = `https://graph.facebook.com/v21.0/${mediaId}/comments`;
+// Fungsi untuk membalas komentar
+async function replyToComment(mediaId, commentId) {
+    const url = `https://graph.facebook.com/v21.0/${commentId}/replies`;
     const body = {
-        message: replyText,
-        parent_comment_id: commentId, // ID komentar yang dibalas
-        access_token: ACCESS_TOKEN
+        message: 'Thanks for the comment!', // Teks balasan
+        access_token: EAA15VDr6ZCaMBO8rBveeQ9yknsjzhJh0jxdREtnjJEBfpvocC9ZAMb3nvJrzrqcEv9AIm3jZB98rBZAmEaeaFF02fW99XZArh8XWB2EZAp9Go1y22eqayoDFnZCYxAeuehqzcwaDicQpGcJr4ZBJbYYLB3QzesaPTlEtbrSelVyspM7FfxydZAxv2I1KaphBmhzZBo8HvHknPelsDMCXaX86EZD, // Token akses Instagram Graph API
     };
 
+    // Mengirim balasan menggunakan POST request
     try {
         const response = await fetch(url, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body)
+            body: JSON.stringify(body),
+            headers: {
+                'Content-Type': 'application/json',
+            },
         });
 
-        const data = await response.json();
-        if (data.error) {
-            console.error('Error replying to comment:', data.error);
+        const responseData = await response.json();
+
+        if (response.ok) {
+            console.log('Successfully replied to comment', responseData);
         } else {
-            console.log('Successfully replied to comment');
+            console.error('Failed to reply to comment', responseData);
         }
     } catch (error) {
-        console.error('Error sending comment reply:', error);
+        console.error('Error replying to comment:', error);
     }
 }
 
