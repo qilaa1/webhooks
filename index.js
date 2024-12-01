@@ -9,18 +9,17 @@ app.use(express.static('public'));
 // Halaman tampilan untuk root URL
 app.get('/', (_req, res) => {
     res.send(`
-        <html>
-
-            <body>
-                <h1>Instagram Webhook Server</h1>
-                <p>Server for handling Instagram API webhooks.</p>
-                <p>Endpoints:</p>
-                <ul>
-                    <li>GET /webhook - <i>Webhook verification</i></li>
-                    <li>POST /webhook - <i>Receive webhook events</i></li>
-                </ul>
-            </body>
-        </html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="facebook-domain-verification" content="i9f8l68mgzw2cl4cx944iw3rvb514g" />
+    <title>Document</title>
+</head>
+<body>
+    verisikasi
+</body>
+</html>
     `);
 });
 
