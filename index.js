@@ -14,8 +14,14 @@ app.use(express.static('public'));
 // Halaman tampilan untuk root URL, mengarahkan ke file HTML
 app.get('/', (_req, res) => {
     res.sendFile(__dirname + '/public/i9f8l68mgzw2cl4cx944iw3rvb514g.html');
-});
 
+
+// Rute untuk Privacy Policy
+app.get('/privacy_policy', (_req, res) => {
+    res.sendFile(__dirname + '/public/privacy_policy.html');
+});
+});
+  
 // Token akses Instagram Graph API Anda (pastikan token ini valid dan sesuai)
 const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
 
