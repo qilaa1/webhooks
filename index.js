@@ -3,24 +3,13 @@ const bodyParser = require('body-parser');
 const fetch = require('node-fetch'); // Pastikan menggunakan node-fetch versi 2
 
 const app = express();
+
 // Menyajikan folder public sebagai folder statis
 app.use(express.static('public'));
 
-// Halaman tampilan untuk root URL
+// Halaman tampilan untuk root URL, mengarahkan ke file HTML
 app.get('/', (_req, res) => {
-    res.send(`
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="facebook-domain-verification" content="i9f8l68mgzw2cl4cx944iw3rvb514g" />
-    <title>Document</title>
-</head>
-<body>
-    verisikasi
-</body>
-</html>
-    `);
+    res.sendFile(__dirname + '/public/i9f8l68mgzw2cl4cx944iw3rvb514g.html');
 });
 
 // Middleware untuk parsing JSON pada body permintaan
@@ -77,4 +66,3 @@ const replyToComment = async (commentId, message) => {
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
-
