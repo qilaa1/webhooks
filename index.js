@@ -38,15 +38,17 @@ app.get('/webhook', (req, res) => {
 });
 
 // Endpoint untuk menangani data komentar dari Instagram
+
+// Endpoint untuk menangani data live comments
 app.post('/webhook', (req, res) => {
     console.log('Menerima data webhook:');
     console.log(JSON.stringify(req.body, null, 2));  // Menampilkan data webhook yang diterima
 
-    // Memeriksa apakah data berkaitan dengan komentar
-    if (req.body.field === 'comments') {
+    // Memeriksa apakah data yang diterima berkaitan dengan komentar live
+    if (req.body.field === 'live_comments') {
         const comment = req.body.value;  // Mengambil data komentar dari webhook
 
-        console.log('Komentar diterima:');
+        console.log('Komentar live diterima:');
         console.log(`Komentar ID: ${comment.id}`);
         console.log(`Dari pengguna: ${comment.from.username} (${comment.from.id})`);
         console.log(`Komentar: ${comment.text}`);
