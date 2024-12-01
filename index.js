@@ -9,7 +9,7 @@ app.use(bodyParser.json());
 
 const PORT = process.env.PORT || 4000;
 const VERIFY_TOKEN = process.env.VERIFY_TOKEN || 'secure_token_123'; // Gunakan environment variable untuk token
-const ACCESS_TOKEN = process.env.ACCESS_TOKEN || 'IGQWRNTFdIWlMxMEJxWVFDRWVGRGlUTmJVbHUycmw1NzJnTTBvZAjNLU1otd0taM3k2WE9Fa3B2VldRRW1TZAENrOHZAtSkFkdEg4STV3cUluODJncXo5bjA4elBNTnQ2cDRWZA0Ntd3JpN2o1ZADRwbjgtM2FUVThCVjgZD'; // Ganti dengan token Anda
+const ACCESS_TOKEN = process.env.ACCESS_TOKEN || 'IGQWRNVE00dGZAVZA3drZAnBaNmItTUJCaGNtalRTN3BSVFRaM0h2Y05LMnBSOGx5bVJ0bFpDeU9qRm5KSjdPSlF4VmhGUDU0OU81b3QwMENzVjJEdGI4U2o4VTNkY3ZABZA25EZAXNhUVpIeVM1VWxoWWRydnpEVnptZAzQZD'; // Ganti dengan token Anda
 
 // Halaman tampilan untuk root URL
 app.get('/', (req, res) => {
