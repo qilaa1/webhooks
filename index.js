@@ -9,8 +9,8 @@ app.get('/', (req, res) => {
     res.send(`
         <html>
             <head>
-                <meta name="facebook-domain-verification" content="i9f8l68mgzw2cl4cx944iw3rvb514g" />
-            </head>
+            <meta name="facebook-domain-verification" content="i9f8l68mgzw2cl4cx944iw3rvb514g" />
+                        </head>
             <body>
                 <h1>Instagram Webhook Server</h1>
                 <p>Server for handling Instagram API webhooks.</p>
