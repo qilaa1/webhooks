@@ -9,7 +9,7 @@ app.use(bodyParser.json());
 
 const PORT = process.env.PORT || 4000;
 const VERIFY_TOKEN = process.env.VERIFY_TOKEN || 'secure_token_123'; // Gunakan environment variable untuk token
-const ACCESS_TOKEN = process.env.ACCESS_TOKEN || 'EAA15VDr6ZCaMBO2wqiOGTZCPWD9UVLRZCDWBkcbnXfmLqaBEW7NWTqwyNxTwnqPu5lbUlXes8JpOD9XmBZC2FD5nsXyh3KWILjaz3loQX2Tx2J66d3mfysbfth1NotZCKH3aAsAOpMGsAoWkIvncnZBBNNwrjxzLq5i4nFWbzLK4cM6YbpXH2E0RYyGCJxVyplIdZCfRqIVIMRsqxY5ZAS11mp3v1wZDZD'; // Simpan Access Token di environment variable
+const ACCESS_TOKEN = process.env.ACCESS_TOKEN || 'IGQWRNTFdIWlMxMEJxWVFDRWVGRGlUTmJVbHUycmw1NzJnTTBvZAjNLU1otd0taM3k2WE9Fa3B2VldRRW1TZAENrOHZAtSkFkdEg4STV3cUluODJncXo5bjA4elBNTnQ2cDRWZA0Ntd3JpN2o1ZADRwbjgtM2FUVThCVjgZD'; // Ganti dengan token Anda
 
 // Halaman tampilan untuk root URL
 app.get('/', (req, res) => {
@@ -31,75 +31,73 @@ app.get('/', (req, res) => {
     `);
 });
 
-// Endpoint untuk verifikasi webhook saat setup
+// Endpoint untuk verifikasi webhook Instagram
 app.get('/webhook', (req, res) => {
     const mode = req.query['hub.mode'];
     const token = req.query['hub.verify_token'];
     const challenge = req.query['hub.challenge'];
 
-    // Periksa token dan mode
-    if (mode === 'subscribe' && token === VERIFY_TOKEN) {
-        console.log("WEBHOOK_VERIFIED");
-        res.status(200).send(challenge); // Kirim challenge kembali untuk verifikasi
+    // Verifikasi token yang diterima
+    if (mode && token === VERIFY_TOKEN) {
+        console.log('Webhook verification successful');
+        res.status(200).send(challenge);
     } else {
-        console.error("WEBHOOK_VERIFICATION_FAILED");
-        res.sendStatus(403); // Token salah atau mode tidak sesuai
+        console.log('Webhook verification failed');
+        res.status(403).send('Forbidden');
     }
 });
 
-// Endpoint untuk menerima notifikasi webhook
+// Endpoint untuk menerima webhook event
 app.post('/webhook', async (req, res) => {
-    try {
-        console.log('Webhook event received:', JSON.stringify(req.body, null, 2));
+    const data = req.body;
 
-        if (!req.body || !req.body.entry) {
-            console.error("Invalid webhook payload");
-            return res.sendStatus(400);
-        }
+    // Pastikan data yang diterima valid
+    if (data && data.entry && Array.isArray(data.entry)) {
+        data.entry.forEach(entry => {
+            // Logika untuk memproses setiap entri (misalnya event baru)
+            entry.changes.forEach(async (change) => {
+                console.log('Received change:', change);
 
-        const changes = req.body.entry[0].changes;
-        if (!changes) {
-            console.error("No changes found in webhook payload");
-            return res.sendStatus(400);
-        }
+                // Contoh: Jika ada postingan baru atau perubahan pada postingan
+                if (change.field === 'media') {
+                    const mediaId = change.value.id;  // ID media (postingan)
+                    const caption = 'Thanks for the post!';  // Komentar balasan
 
-        // Proses setiap perubahan (field `comments`)
-        for (const change of changes) {
-            if (change.field === 'comments') {
-                const commentId = change.value.id; // ID komentar baru
-                const replyMessage = "Terima kasih atas komentarnya!"; // Pesan balasan
-
-                console.log(`Processing comment ID: ${commentId}`);
-
-                // Kirim balasan otomatis ke komentar
-                const response = await fetch(`https://graph.facebook.com/v21.0/${commentId}/replies`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        message: replyMessage,
-                        access_token: ACCESS_TOKEN // Access Token diambil dari environment variable
-                    })
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    console.log('Reply sent successfully:', data);
-                } else {
-                    console.error('Error sending reply:', data.error);
+                    // Mengirim komentar ke media
+                    await postCommentToInstagram(mediaId, caption);
                 }
-            }
-        }
+            });
+        });
 
-        // Kirim respons sukses ke Meta
-        res.sendStatus(200);
-    } catch (error) {
-        console.error('Error handling webhook event:', error);
-        res.sendStatus(500); // Kirim respons error jika terjadi masalah
+        res.status(200).send('EVENT_RECEIVED');
+    } else {
+        res.status(400).send('Bad Request');
     }
 });
 
-// Jalankan server
+// Fungsi untuk mengirim komentar ke media Instagram
+const postCommentToInstagram = async (mediaId, message) => {
+    const url = `https://graph.facebook.com/v12.0/${mediaId}/comments?access_token=${ACCESS_TOKEN}`;
+    const body = JSON.stringify({ message });
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: body
+        });
+
+        if (response.ok) {
+            console.log('Komentar berhasil dikirim');
+        } else {
+            console.error('Gagal mengirim komentar:', response.status, await response.text());
+        }
+    } catch (error) {
+        console.error('Error saat mengirim komentar:', error);
+    }
+};
+
+// Mulai server
 app.listen(PORT, () => {
-    console.log(`Webhook server is running on port ${PORT}`);
+    console.log(`Server berjalan di port ${PORT}`);
 });
