@@ -4,17 +4,18 @@ const fetch = require('node-fetch'); // Pastikan menggunakan node-fetch versi 2
 
 const app = express();
 
-// Halaman tampilan untuk root URL
-app.get('/', (req, res) => {
-    res.send(`Instagram Webhook Server`);
-});
-
 // Middleware untuk parsing JSON pada body permintaan
 app.use(bodyParser.json());
 
 const PORT = process.env.PORT || 4000;
 const VERIFY_TOKEN = process.env.VERIFY_TOKEN || 'secure_token_123'; // Token verifikasi Anda
 const ACCESS_TOKEN = process.env.ACCESS_TOKEN || 'EAA15VDr6ZCaMBO0HjTyCsVaMrCsIhj678fY4NUi6TpeRPluy0soBWNmA8PznTtI2bfZAQlfXGvgKw1ZAsQDNLNxu8jFCsqCgPZAmr1hxLKh3QHSOV7GhoH4TO574T1aowpAYo5WRRw4DZCxuWCuvXtqscls4sQyJvEOykSWNVvpAd08B8t3SSuh0qMFkTFVShYleyRjlzL5VZCE9Yt0gZDZD'; // Token akses Instagram Graph API Anda
+const BUSINESS_ACCOUNT_ID = '17841470490851912'; // Ganti dengan ID bisnis Anda
+
+// Halaman tampilan untuk root URL
+app.get('/', (req, res) => {
+    res.send(`Instagram Webhook Server`);
+});
 
 // Endpoint untuk verifikasi webhook Instagram
 app.get('/webhook', (req, res) => {
@@ -31,26 +32,23 @@ app.get('/webhook', (req, res) => {
 
 // Fungsi untuk mengambil semua postingan dari Instagram Business Account
 const getAllPosts = async () => {
-    const url = `https://graph.facebook.com/v21.0/18049023526985234/comments?access_token=EAA15VDr6ZCaMBO0HjTyCsVaMrCsIhj678fY4NUi6TpeRPluy0soBWNmA8PznTtI2bfZAQlfXGvgKw1ZAsQDNLNxu8jFCsqCgPZAmr1hxLKh3QHSOV7GhoH4TO574T1aowpAYo5WRRw4DZCxuWCuvXtqscls4sQyJvEOykSWNVvpAd08B8t3SSuh0qMFkTFVShYleyRjlzL5VZCE9Yt0gZDZD`;
-
+    const url = `https://graph.facebook.com/v21.0/${BUSINESS_ACCOUNT_ID}/media?fields=id,caption,media_type,media_url,thumbnail_url,timestamp&access_token=${ACCESS_TOKEN}`;
     const response = await fetch(url);
     const data = await response.json();
-
     return data.data || [];
 };
 
-// Fungsi untuk mengambil komentar dari sebuah media (posting)
-const getComments = async () => {
-    const url = `https://graph.facebook.com/v21.0/18049023526985234/comments?access_token=EAA15VDr6ZCaMBO0HjTyCsVaMrCsIhj678fY4NUi6TpeRPluy0soBWNmA8PznTtI2bfZAQlfXGvgKw1ZAsQDNLNxu8jFCsqCgPZAmr1hxLKh3QHSOV7GhoH4TO574T1aowpAYo5WRRw4DZCxuWCuvXtqscls4sQyJvEOykSWNVvpAd08B8t3SSuh0qMFkTFVShYleyRjlzL5VZCE9Yt0gZDZD`;
+// Fungsi untuk mengambil komentar dari postingan tertentu
+const getComments = async (mediaId) => {
+    const url = `https://graph.facebook.com/v21.0/${mediaId}/comments?access_token=${ACCESS_TOKEN}`;
     const response = await fetch(url);
     const data = await response.json();
-
     return data.data || [];
 };
 
 // Fungsi untuk membalas komentar
-const replyToComment = async (message) => {
-    const replyUrl = `https://graph.facebook.com/v21.0/18085664251549542/replies?access_token=EAA15VDr6ZCaMBO0HjTyCsVaMrCsIhj678fY4NUi6TpeRPluy0soBWNmA8PznTtI2bfZAQlfXGvgKw1ZAsQDNLNxu8jFCsqCgPZAmr1hxLKh3QHSOV7GhoH4TO574T1aowpAYo5WRRw4DZCxuWCuvXtqscls4sQyJvEOykSWNVvpAd08B8t3SSuh0qMFkTFVShYleyRjlzL5VZCE9Yt0gZDZD`;
+const replyToComment = async (commentId, message) => {
+    const replyUrl = `https://graph.facebook.com/v21.0/${commentId}/replies`;
     const response = await fetch(replyUrl, {
         method: 'POST',
         body: JSON.stringify({
@@ -59,28 +57,34 @@ const replyToComment = async (message) => {
         }),
         headers: { 'Content-Type': 'application/json' }
     });
-
     const data = await response.json();
-    console.log('Replied to comment:', data);
+    return data;
 };
 
-// Endpoint untuk menerima webhook
-app.post('/webhook', async (req, res) => {
-    const entries = req.body.entry;
-    entries.forEach(async entry => {
-        if (entry.changes && entry.changes[0].field === 'comments') {
-            const comment = entry.changes[0].value;
-            const commentId = comment.id;
-            const message = 'Terima kasih sudah berkomentar!'; // Pesan balasan
-
-            // Membalas komentar
-            await replyToComment(commentId, message);
+// Fungsi utama untuk mengambil semua postingan dan komentar, kemudian membalas komentar terbaru
+const processAndReplyToComments = async () => {
+    try {
+        const posts = await getAllPosts();
+        for (const post of posts) {
+            const mediaId = post.id;
+            const comments = await getComments(mediaId);
+            
+            if (comments.length > 0) {
+                const latestComment = comments[comments.length - 1]; // Ambil komentar terbaru
+                const message = 'Terima kasih sudah berkomentar!';
+                await replyToComment(latestComment.id, message); // Membalas komentar terbaru
+                console.log(`Replied to comment ID: ${latestComment.id}`);
+            }
         }
-    });
-    res.status(200).send('Event received');
-});
+    } catch (error) {
+        console.error('Error processing comments:', error);
+    }
+};
 
-// Mulai server
+// Memanggil fungsi untuk memproses dan membalas komentar setiap kali server dijalankan
+processAndReplyToComments();
+
+// Menjalankan server di port 4000
 app.listen(PORT, () => {
-    console.log(`Server berjalan di http://localhost:${PORT}`);
+    console.log(`Server running on port ${PORT}`);
 });
