@@ -1,12 +1,18 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const fetch = require('node-fetch'); // Menggunakan node-fetch versi 2
+const fetch = require('node-fetch'); // Pastikan menggunakan node-fetch versi 2
+
 const app = express();
 
-// Middleware untuk parsing JSON
-app.use(bodyParser.json());
+// Menyajikan folder public sebagai folder statis
+app.use(express.static('public'));
 
-// Token akses Instagram Graph API Anda (pastikan token ini valid dan sesuai)
+// Halaman tampilan untuk root URL, mengarahkan ke file HTML
+app.get('/', (_req, res) => {
+    res.sendFile(__dirname + '/public/i9f8l68mgzw2cl4cx944iw3rvb514g.html');
+});
+
+/// Token akses Instagram Graph API Anda (pastikan token ini valid dan sesuai)
 require('dotenv').config();
 const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
 
@@ -57,4 +63,3 @@ const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
     console.log(`Server berjalan di port ${PORT}`);
 });
-y
