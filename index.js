@@ -9,7 +9,7 @@ app.use(bodyParser.json());
 
 const PORT = process.env.PORT || 4000;
 const VERIFY_TOKEN = process.env.VERIFY_TOKEN || 'secure_token_123'; // Token verifikasi Anda
-const ACCESS_TOKEN = process.env.ACCESS_TOKEN || 'EAA15VDr6ZCaMBO8rBveeQ9yknsjzhJh0jxdREtnjJEBfpvocC9ZAMb3nvJrzrqcEv9AIm3jZB98rBZAmEaeaFF02fW99XZArh8XWB2EZAp9Go1y22eqayoDFnZCYxAeuehqzcwaDicQpGcJr4ZBJbYYLB3QzesaPTlEtbrSelVyspM7FfxydZAxv2I1KaphBmhzZBo8HvHknPelsDMCXaX86EZD'; // Token akses Instagram Graph API Anda
+const ACCESS_TOKEN = process.env.ACCESS_TOKEN || 'EAA15VDr6ZCaMBO0HjTyCsVaMrCsIhj678fY4NUi6TpeRPluy0soBWNmA8PznTtI2bfZAQlfXGvgKw1ZAsQDNLNxu8jFCsqCgPZAmr1hxLKh3QHSOV7GhoH4TO574T1aowpAYo5WRRw4DZCxuWCuvXtqscls4sQyJvEOykSWNVvpAd08B8t3SSuh0qMFkTFVShYleyRjlzL5VZCE9Yt0gZDZD'; // Token akses Instagram Graph API Anda
 
 // Halaman tampilan untuk root URL
 app.get('/', (req, res) => {
@@ -81,7 +81,7 @@ async function replyToComment(mediaId, commentId) {
     const url = `https://graph.facebook.com/v21.0/${commentId}/replies`;
     const body = {
         message: 'Thanks for the comment!', // Teks balasan
-        access_token: EAA15VDr6ZCaMBO8rBveeQ9yknsjzhJh0jxdREtnjJEBfpvocC9ZAMb3nvJrzrqcEv9AIm3jZB98rBZAmEaeaFF02fW99XZArh8XWB2EZAp9Go1y22eqayoDFnZCYxAeuehqzcwaDicQpGcJr4ZBJbYYLB3QzesaPTlEtbrSelVyspM7FfxydZAxv2I1KaphBmhzZBo8HvHknPelsDMCXaX86EZD, // Token akses Instagram Graph API
+        access_token: EAA15VDr6ZCaMBO0HjTyCsVaMrCsIhj678fY4NUi6TpeRPluy0soBWNmA8PznTtI2bfZAQlfXGvgKw1ZAsQDNLNxu8jFCsqCgPZAmr1hxLKh3QHSOV7GhoH4TO574T1aowpAYo5WRRw4DZCxuWCuvXtqscls4sQyJvEOykSWNVvpAd08B8t3SSuh0qMFkTFVShYleyRjlzL5VZCE9Yt0gZDZD, // Token akses Instagram Graph API
     };
 
     // Mengirim balasan menggunakan POST request
