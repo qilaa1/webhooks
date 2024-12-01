@@ -7,7 +7,8 @@ const app = express();
 app.use(bodyParser.json());
 
 // Token akses Instagram Graph API Anda (pastikan token ini valid dan sesuai)
-const ACCESS_TOKEN = process.env.ACCESS_TOKEN || 'your_access_token_here'; // Ganti dengan token akses Anda
+require('dotenv').config();
+const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
 
 // Fungsi untuk membalas komentar
 const replyToComment = async (commentId, message, accessToken) => {
@@ -56,3 +57,4 @@ const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
     console.log(`Server berjalan di port ${PORT}`);
 });
+y
