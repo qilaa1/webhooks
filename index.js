@@ -13,31 +13,53 @@ app.get('/', (_req, res) => {
 });
 
 // Middleware untuk parsing JSON pada body permintaan
+// Middleware untuk parsing JSON
 app.use(bodyParser.json());
-
-const PORT = process.env.PORT || 4000;
-const VERIFY_TOKEN = process.env.VERIFY_TOKEN || 'secure_token_123'; // Token verifikasi Anda
-require('dotenv').config();
-const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
 
 // Endpoint untuk verifikasi webhook Instagram
 app.get('/webhook', (req, res) => {
-    const mode = req.query['hub.mode'];
-    const token = req.query['hub.verify_token'];
-    const challenge = req.query['hub.challenge'];
+    const mode = req.query['hub.mode'];  // subscribe
+    const token = req.query['hub.verify_token'];  // token yang dikirim oleh Facebook
+    const challenge = req.query['hub.challenge'];  // challenge yang dikirim oleh Facebook
 
     console.log('Verifikasi Webhook');
     console.log('Mode:', mode);
     console.log('Token:', token);
     console.log('Challenge:', challenge);
 
+    // Memeriksa token verifikasi
     if (mode && token === VERIFY_TOKEN) {
         console.log('Verifikasi Berhasil');
-        res.status(200).send(challenge);
+        res.status(200).send(challenge);  // Mengembalikan challenge untuk verifikasi
     } else {
         console.log('Token Tidak Cocok');
-        res.status(403).send('Token verifikasi tidak cocok');
+        res.status(403).send('Token verifikasi tidak cocok');  // Jika token tidak cocok
     }
+});
+
+// Endpoint untuk menangani data komentar dari Instagram
+app.post('/webhook', (req, res) => {
+    console.log('Menerima data webhook:');
+    console.log(JSON.stringify(req.body, null, 2));  // Menampilkan data webhook yang diterima
+
+    // Memeriksa apakah data berkaitan dengan komentar
+    if (req.body.field === 'comments') {
+        const comment = req.body.value;  // Mengambil data komentar dari webhook
+
+        console.log('Komentar diterima:');
+        console.log(`Komentar ID: ${comment.id}`);
+        console.log(`Dari pengguna: ${comment.from.username} (${comment.from.id})`);
+        console.log(`Komentar: ${comment.text}`);
+    }
+
+    // Mengirimkan respons status OK ke Facebook untuk memberitahukan bahwa webhook telah diterima
+    res.status(200).send('Webhook diterima');
+});
+
+// Tentukan port untuk aplikasi Anda
+const PORT = process.env.PORT || 4000;  // Hanya deklarasikan PORT sekali
+app.listen(PORT, () => {
+    console.log(`Server berjalan di port ${PORT}`);
 });
 
 // Fungsi untuk mengambil semua postingan dari Instagram Business Account
