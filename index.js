@@ -11,6 +11,26 @@ const PORT = process.env.PORT || 4000;
 const VERIFY_TOKEN = process.env.VERIFY_TOKEN || 'secure_token_123'; // Token verifikasi Anda
 const ACCESS_TOKEN = process.env.ACCESS_TOKEN || 'EAA15VDr6ZCaMBO8rBveeQ9yknsjzhJh0jxdREtnjJEBfpvocC9ZAMb3nvJrzrqcEv9AIm3jZB98rBZAmEaeaFF02fW99XZArh8XWB2EZAp9Go1y22eqayoDFnZCYxAeuehqzcwaDicQpGcJr4ZBJbYYLB3QzesaPTlEtbrSelVyspM7FfxydZAxv2I1KaphBmhzZBo8HvHknPelsDMCXaX86EZD'; // Ganti dengan token akses Instagram Graph API Anda
 
+// Halaman tampilan untuk root URL
+app.get('/', (req, res) => {
+    res.send(`
+        <html>
+            <head>
+                <title>Instagram Webhook Server</title>
+            </head>
+            <body>
+                <h1>Instagram Webhook Server</h1>
+                <p>Server for handling Instagram API webhooks.</p>
+                <p>Endpoints:</p>
+                <ul>
+                    <li>GET /webhook - <i>Webhook verification</i></li>
+                    <li>POST /webhook - <i>Receive webhook events</i></li>
+                </ul>
+            </body>
+        </html>
+    `);
+});
+
 // Endpoint untuk verifikasi webhook Instagram
 app.get('/webhook', (req, res) => {
     const mode = req.query['hub.mode'];
@@ -26,60 +46,55 @@ app.get('/webhook', (req, res) => {
     }
 });
 
-// Endpoint untuk menerima webhook event dan membalas komentar otomatis
+// Endpoint untuk menerima webhook event (POST)
 app.post('/webhook', async (req, res) => {
     const data = req.body;
+    console.log('Webhook received:', JSON.stringify(data, null, 2));
 
-    // Pastikan ada perubahan komentar di event webhook
-    if (data.entry && data.entry[0].changes) {
-        const changes = data.entry[0].changes;
+    // Pastikan data komentar ada
+    if (data && data.entry) {
+        const entry = data.entry[0];
+        const changes = entry.changes;
 
-        // Looping setiap perubahan
-        changes.forEach(async (change) => {
+        // Loop untuk memeriksa perubahan komentar
+        for (const change of changes) {
             if (change.field === 'comments') {
-                const mediaId = change.value.media.id; // ID media yang dikomentari
-                const commentId = change.value.id; // ID komentar
-                const commentText = change.value.text; // Isi komentar
+                const comment = change.value;
+                const mediaId = comment.media.id;
+                const commentId = comment.id;
+                const userComment = comment.text;
 
-                console.log('Media ID:', mediaId);
-                console.log('Comment ID:', commentId);
-                console.log('Comment Text:', commentText);
+                console.log(`New comment received: ${userComment}`);
 
-                // Kirim balasan komentar otomatis
-                const responseText = 'Terima kasih atas komentarnya!';
-                await sendCommentResponse(mediaId, responseText);
+                // Balas komentar
+                const reply = `Thanks for your comment! Here's an automated response!`;
+
+                // Kirim balasan komentar
+                try {
+                    const response = await fetch(
+                        `https://graph.facebook.com/v12.0/${mediaId}/comments`,
+                        {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                message: reply,
+                                access_token: ACCESS_TOKEN,
+                            }),
+                            headers: { 'Content-Type': 'application/json' },
+                        }
+                    );
+                    const result = await response.json();
+                    console.log('Reply sent:', result);
+                } catch (error) {
+                    console.error('Error sending reply:', error);
+                }
             }
-        });
+        }
     }
 
-    // Kirim status OK setelah memproses
-    res.status(200).send('EVENT_RECEIVED');
+    res.status(200).send('Event processed');
 });
 
-// Fungsi untuk mengirimkan komentar balasan menggunakan Instagram Graph API
-async function sendCommentResponse(mediaId, responseText) {
-    const url = `https://graph.facebook.com/v12.0/${mediaId}/comments`;
-    const params = {
-        method: 'POST',
-        body: JSON.stringify({
-            message: responseText,
-            access_token: ACCESS_TOKEN,
-        }),
-        headers: {
-            'Content-Type': 'application/json',
-        },
-    };
-
-    try {
-        const res = await fetch(url, params);
-        const data = await res.json();
-        console.log('Response:', data); // Menampilkan response dari API
-    } catch (error) {
-        console.error('Error sending comment:', error);
-    }
-}
-
-// Menjalankan server
+// Menjalankan server pada port yang ditentukan
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+    console.log(`Server running on http://localhost:${PORT}`);
 });
