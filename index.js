@@ -10,7 +10,7 @@ app.get('/', (req, res) => {
         <html>
             <head>
             <meta name="facebook-domain-verification" content="i9f8l68mgzw2cl4cx944iw3rvb514g" />
-                        </head>
+            </head>
             <body>
                 <h1>Instagram Webhook Server</h1>
                 <p>Server for handling Instagram API webhooks.</p>
@@ -37,9 +37,16 @@ app.get('/webhook', (req, res) => {
     const token = req.query['hub.verify_token'];
     const challenge = req.query['hub.challenge'];
 
+    console.log('Verifikasi Webhook');
+    console.log('Mode:', mode);
+    console.log('Token:', token);
+    console.log('Challenge:', challenge);
+
     if (mode && token === VERIFY_TOKEN) {
+        console.log('Verifikasi Berhasil');
         res.status(200).send(challenge);
     } else {
+        console.log('Token Tidak Cocok');
         res.status(403).send('Token verifikasi tidak cocok');
     }
 });
