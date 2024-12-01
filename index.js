@@ -9,27 +9,8 @@ app.use(bodyParser.json());
 
 const PORT = process.env.PORT || 4000;
 const VERIFY_TOKEN = process.env.VERIFY_TOKEN || 'secure_token_123'; // Token verifikasi Anda
-const ACCESS_TOKEN = process.env.ACCESS_TOKEN || 'EAA15VDr6ZCaMBO0HjTyCsVaMrCsIhj678fY4NUi6TpeRPluy0soBWNmA8PznTtI2bfZAQlfXGvgKw1ZAsQDNLNxu8jFCsqCgPZAmr1hxLKh3QHSOV7GhoH4TO574T1aowpAYo5WRRw4DZCxuWCuvXtqscls4sQyJvEOykSWNVvpAd08B8t3SSuh0qMFkTFVShYleyRjlzL5VZCE9Yt0gZDZD'; // Token akses Instagram Graph API Anda
-
-// Halaman tampilan untuk root URL
-app.get('/', (req, res) => {
-    res.send(`
-        <html>
-            <head>
-                <title>Instagram Webhook Server</title>
-            </head>
-            <body>
-                <h1>Instagram Webhook Server</h1>
-                <p>Server for handling Instagram API webhooks.</p>
-                <p>Endpoints:</p>
-                <ul>
-                    <li>GET /webhook - <i>Webhook verification</i></li>
-                    <li>POST /webhook - <i>Receive webhook events</i></li>
-                </ul>
-            </body>
-        </html>
-    `);
-});
+const ACCESS_TOKEN = process.env.ACCESS_TOKEN || 'AbxLzoYCOykuqbjR'; // Token akses Instagram Graph API Anda
+const BUSINESS_ACCOUNT_ID = '473828995815534'; // ID Bisnis Instagram Anda
 
 // Endpoint untuk verifikasi webhook Instagram
 app.get('/webhook', (req, res) => {
@@ -37,76 +18,91 @@ app.get('/webhook', (req, res) => {
     const token = req.query['hub.verify_token'];
     const challenge = req.query['hub.challenge'];
 
-    // Verifikasi token yang diterima
     if (mode && token === VERIFY_TOKEN) {
-        console.log('Webhook verification successful');
         res.status(200).send(challenge);
     } else {
-        console.log('Webhook verification failed');
-        res.status(403).send('Forbidden');
+        res.status(403).send('Error, invalid token');
     }
 });
 
-// Endpoint untuk menerima webhook event
-app.post('/webhook', async (req, res) => {
-    const data = req.body;
-    
-    // Pastikan data yang diterima berisi perubahan komentar
-    if (data.object === 'instagram' && data.entry && data.entry[0].changes) {
-        const changes = data.entry[0].changes;
+// Fungsi untuk mengambil semua postingan dari Instagram Business Account
+const getAllPosts = async () => {
+    const url = `https://graph.facebook.com/v12.0/${BUSINESS_ACCOUNT_ID}/media?fields=id,caption,media_type,media_url,timestamp&access_token=${ACCESS_TOKEN}`;
+    const response = await fetch(url);
+    const data = await response.json();
+    return data.data || [];
+};
 
-        changes.forEach(async (change) => {
-            if (change.field === 'comments') {
-                const comment = change.value;
-                const mediaId = comment.media.id;
-                const commentId = comment.id;
-                const commentText = comment.text;
-                const userId = comment.from.id;
+// Fungsi untuk mengambil komentar dari postingan tertentu
+const getComments = async (mediaId) => {
+    const url = `https://graph.facebook.com/v12.0/${mediaId}/comments?access_token=${ACCESS_TOKEN}`;
+    const response = await fetch(url);
+    const data = await response.json();
+    return data.data || [];
+};
 
-                // Log komentar yang diterima
-                console.log(`Received comment: "${commentText}" from user ${userId} on media ${mediaId}`);
-
-                // Kirim komentar balasan
-                const replyText = "Thanks for your comment!"; // Pesan balasan
-                await sendCommentReply(mediaId, commentId, replyText);
-            }
-        });
-    }
-
-    // Kirim response ke Instagram (500 OK)
-    res.sendStatus(200);
-});
 // Fungsi untuk membalas komentar
-async function replyToComment(mediaId, commentId) {
-    const url = `https://graph.facebook.com/v21.0/18049023526985234/comments?access_token=EAA15VDr6ZCaMBOZB8Qz0VAzdIrDlADbzeCLsaFckK5cvx0GpfHXT8plVSNEs3IrRdr1mENRPlTOPKd6a2G1Q3lPTIchTqS7xSnehz9CEp1kr7JTNMERtQZApwsvFMoeuEVpT2r9C0159OOJKd8OipnvrzQ1VWO3TfUbTFw0qO5evJEm7XxQuZAV8YTF5LQLX`;
-    const body = {
-        message: 'Thanks for the comment!', // Teks balasan
-        access_token: EAA15VDr6ZCaMBO0HjTyCsVaMrCsIhj678fY4NUi6TpeRPluy0soBWNmA8PznTtI2bfZAQlfXGvgKw1ZAsQDNLNxu8jFCsqCgPZAmr1hxLKh3QHSOV7GhoH4TO574T1aowpAYo5WRRw4DZCxuWCuvXtqscls4sQyJvEOykSWNVvpAd08B8t3SSuh0qMFkTFVShYleyRjlzL5VZCE9Yt0gZDZD, // Token akses Instagram Graph API
-    };
+const replyToComment = async (commentId) => {
+    const replyUrl = `https://graph.facebook.com/v12.0/${commentId}/replies`;
+    const message = 'Terima kasih sudah berkomentar!'; // Pesan balasan
+    const response = await fetch(replyUrl, {
+        method: 'POST',
+        body: JSON.stringify({
+            message: message,
+            access_token: ACCESS_TOKEN,
+        }),
+        headers: { 'Content-Type': 'application/json' },
+    });
+    const data = await response.json();
+    console.log(`Replied to comment ID: ${commentId}`, data);
+};
 
-    // Mengirim balasan menggunakan POST request
+// Fungsi utama untuk mengambil semua postingan dan membalas komentar terbaru
+const fetchAndReplyComments = async () => {
     try {
-        const response = await fetch(url, {
-            method: 'POST',
-            body: JSON.stringify(body),
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        });
+        // Ambil semua postingan
+        const posts = await getAllPosts();
 
-        const responseData = await response.json();
-
-        if (response.ok) {
-            console.log('Successfully replied to comment', responseData);
-        } else {
-            console.error('Failed to reply to comment', responseData);
+        // Untuk setiap postingan, ambil semua komentar dan balas komentar terbaru
+        for (const post of posts) {
+            const comments = await getComments(post.id);
+            
+            // Jika ada komentar baru, balas komentar pertama
+            if (comments.length > 0) {
+                const latestComment = comments[0]; // Komentar pertama dalam daftar (terbaru)
+                console.log('Newest comment:', latestComment.text);
+                await replyToComment(latestComment.id); // Balas komentar terbaru
+            }
         }
     } catch (error) {
-        console.error('Error replying to comment:', error);
+        console.error('Error fetching posts or comments:', error);
     }
-}
+};
+
+// Endpoint untuk menerima webhook Instagram
+app.post('/webhook', (req, res) => {
+    const data = req.body;
+
+    if (data && data.entry) {
+        // Ambil ID media dan komentar terbaru
+        const { id: mediaId, changes } = data.entry[0];
+
+        if (changes && changes[0] && changes[0].field === 'comments') {
+            const commentData = changes[0].value;
+            console.log('New comment received:', commentData.text);
+
+            // Balas komentar yang baru saja diterima
+            replyToComment(commentData.id);
+        }
+    }
+
+    // Kirim respons 200 OK untuk Instagram webhook
+    res.status(200).send('Event received');
+});
 
 // Menjalankan server
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
+    // Panggil fungsi untuk mengambil postingan dan membalas komentar terbaru
+    fetchAndReplyComments(); // Hanya panggil ini sekali setelah server berjalan, atau bisa dijadwalkan
 });
