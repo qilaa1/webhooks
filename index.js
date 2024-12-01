@@ -31,8 +31,7 @@ app.get('/webhook', (req, res) => {
 
 // Fungsi untuk mengambil semua postingan dari Instagram Business Account
 const getAllPosts = async () => {
-    const businessAccountId = '473828995815534'; // Ganti dengan ID Bisnis Instagram Anda
-    const url = `https://graph.facebook.com/v12.0/${businessAccountId}/media?fields=id,caption,media_type,media_url,thumbnail_url,timestamp&access_token=${ACCESS_TOKEN}`;
+    const url = `https://graph.facebook.com/v21.0/18049023526985234/comments?access_token=EAA15VDr6ZCaMBO0HjTyCsVaMrCsIhj678fY4NUi6TpeRPluy0soBWNmA8PznTtI2bfZAQlfXGvgKw1ZAsQDNLNxu8jFCsqCgPZAmr1hxLKh3QHSOV7GhoH4TO574T1aowpAYo5WRRw4DZCxuWCuvXtqscls4sQyJvEOykSWNVvpAd08B8t3SSuh0qMFkTFVShYleyRjlzL5VZCE9Yt0gZDZD`;
 
     const response = await fetch(url);
     const data = await response.json();
@@ -41,8 +40,8 @@ const getAllPosts = async () => {
 };
 
 // Fungsi untuk mengambil komentar dari sebuah media (posting)
-const getComments = async (mediaId) => {
-    const url = `https://graph.facebook.com/v12.0/${mediaId}/comments?access_token=${ACCESS_TOKEN}`;
+const getComments = async () => {
+    const url = `https://graph.facebook.com/v21.0/18049023526985234/comments?access_token=EAA15VDr6ZCaMBO0HjTyCsVaMrCsIhj678fY4NUi6TpeRPluy0soBWNmA8PznTtI2bfZAQlfXGvgKw1ZAsQDNLNxu8jFCsqCgPZAmr1hxLKh3QHSOV7GhoH4TO574T1aowpAYo5WRRw4DZCxuWCuvXtqscls4sQyJvEOykSWNVvpAd08B8t3SSuh0qMFkTFVShYleyRjlzL5VZCE9Yt0gZDZD`;
     const response = await fetch(url);
     const data = await response.json();
 
@@ -50,8 +49,8 @@ const getComments = async (mediaId) => {
 };
 
 // Fungsi untuk membalas komentar
-const replyToComment = async (commentId, message) => {
-    const replyUrl = `https://graph.facebook.com/v12.0/${commentId}/replies`;
+const replyToComment = async (message) => {
+    const replyUrl = `https://graph.facebook.com/v21.0/18085664251549542/replies?access_token=EAA15VDr6ZCaMBO0HjTyCsVaMrCsIhj678fY4NUi6TpeRPluy0soBWNmA8PznTtI2bfZAQlfXGvgKw1ZAsQDNLNxu8jFCsqCgPZAmr1hxLKh3QHSOV7GhoH4TO574T1aowpAYo5WRRw4DZCxuWCuvXtqscls4sQyJvEOykSWNVvpAd08B8t3SSuh0qMFkTFVShYleyRjlzL5VZCE9Yt0gZDZD`;
     const response = await fetch(replyUrl, {
         method: 'POST',
         body: JSON.stringify({
