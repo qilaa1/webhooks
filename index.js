@@ -78,7 +78,7 @@ app.post('/webhook', async (req, res) => {
 });
 // Fungsi untuk membalas komentar
 async function replyToComment(mediaId, commentId) {
-    const url = `https://graph.facebook.com/v21.0/${commentId}/replies`;
+    const url = `https://graph.facebook.com/v21.0/18049023526985234/comments?access_token=EAA15VDr6ZCaMBOZB8Qz0VAzdIrDlADbzeCLsaFckK5cvx0GpfHXT8plVSNEs3IrRdr1mENRPlTOPKd6a2G1Q3lPTIchTqS7xSnehz9CEp1kr7JTNMERtQZApwsvFMoeuEVpT2r9C0159OOJKd8OipnvrzQ1VWO3TfUbTFw0qO5evJEm7XxQuZAV8YTF5LQLX`;
     const body = {
         message: 'Thanks for the comment!', // Teks balasan
         access_token: EAA15VDr6ZCaMBO0HjTyCsVaMrCsIhj678fY4NUi6TpeRPluy0soBWNmA8PznTtI2bfZAQlfXGvgKw1ZAsQDNLNxu8jFCsqCgPZAmr1hxLKh3QHSOV7GhoH4TO574T1aowpAYo5WRRw4DZCxuWCuvXtqscls4sQyJvEOykSWNVvpAd08B8t3SSuh0qMFkTFVShYleyRjlzL5VZCE9Yt0gZDZD, // Token akses Instagram Graph API
