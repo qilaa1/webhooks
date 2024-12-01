@@ -10,8 +10,6 @@ app.use(express.static('public'));
 app.get('/', (_req, res) => {
     res.send(`
         <html>
-            <head>
-            <meta name="facebook-domain-verification" content="i9f8l68mgzw2cl4cx944iw3rvb514g" />
 
             <body>
                 <h1>Instagram Webhook Server</h1>
@@ -22,7 +20,6 @@ app.get('/', (_req, res) => {
                     <li>POST /webhook - <i>Receive webhook events</i></li>
                 </ul>
             </body>
-            </head>
         </html>
     `);
 });
