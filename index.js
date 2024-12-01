@@ -9,7 +9,7 @@ app.use(bodyParser.json());
 
 const PORT = process.env.PORT || 4000;
 const VERIFY_TOKEN = process.env.VERIFY_TOKEN || 'secure_token_123'; // Ganti dengan token verifikasi Anda
-const ACCESS_TOKEN = process.env.ACCESS_TOKEN || 'IGQWRNVE00dGZAVZA3drZAnBaNmItTUJCaGNtalRTN3BSVFRaM0h2Y05LMnBSOGx5bVJ0bFpDeU9qRm5KSjdPSlF4VmhGUDU0OU81b3QwMENzVjJEdGI4U2o4VTNkY3ZABZA25EZAXNhUVpIeVM1VWxoWWRydnpEVnptZAzQZD'; // Ganti dengan token akses Instagram Graph API Anda
+const ACCESS_TOKEN = process.env.ACCESS_TOKEN || 'EAA15VDr6ZCaMBO8rBveeQ9yknsjzhJh0jxdREtnjJEBfpvocC9ZAMb3nvJrzrqcEv9AIm3jZB98rBZAmEaeaFF02fW99XZArh8XWB2EZAp9Go1y22eqayoDFnZCYxAeuehqzcwaDicQpGcJr4ZBJbYYLB3QzesaPTlEtbrSelVyspM7FfxydZAxv2I1KaphBmhzZBo8HvHknPelsDMCXaX86EZD'; // Ganti dengan token akses Instagram Graph API Anda
 const IG_USER_ID = '122105310890590854'; // Ganti dengan ID pengguna Instagram Anda
 
 // Halaman tampilan untuk root URL
