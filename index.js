@@ -31,7 +31,8 @@ app.use(bodyParser.json());
 
 const PORT = process.env.PORT || 4000;
 const VERIFY_TOKEN = process.env.VERIFY_TOKEN || 'secure_token_123'; // Token verifikasi Anda
-const ACCESS_TOKEN = process.env.ACCESS_TOKEN || 'EAA15VDr6ZCaMBOyEG5hwxGQ0ThIgZB623coXT5SNAyzzRWUR2gs4hsWJZC74LPftZBRwe5jR1c8sjgGOes8ijrf1Rttllbh8SxEDECQuNZA0J4aL2BQ9ruBioNMZBGhROQKK0ZBNCZA2Fpq482sAUX3M7ILWZBgt4RESNvdZCBA4SKcauETYRvMIOxdvv1XXaQZCBBZABPfnEVnRqWsJfQRRdgZDZD'; // Token akses Instagram Graph API Anda
+require('dotenv').config();
+const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
 
 // Endpoint untuk verifikasi webhook Instagram
 app.get('/webhook', (req, res) => {
