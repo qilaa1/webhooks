@@ -1,22 +1,13 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const fetch = require('node-fetch'); // Pastikan menggunakan node-fetch versi 2
-
+const fetch = require('node-fetch'); // Menggunakan node-fetch versi 2
 const app = express();
 
-// Menyajikan folder public sebagai folder statis
-app.use(express.static('public'));
-
-// Halaman tampilan untuk root URL, mengarahkan ke file HTML
-app.get('/', (_req, res) => {
-    res.sendFile(__dirname + '/public/i9f8l68mgzw2cl4cx944iw3rvb514g.html');
-});
-
-// Middleware untuk parsing JSON pada body permintaan
+// Middleware untuk parsing JSON
 app.use(bodyParser.json());
 
-// Menggunakan token akses dari environment variables atau dapat diganti dengan token langsung
-const ACCESS_TOKEN = process.env.ACCESS_TOKEN || 'your_access_token_here'; // Pastikan token ini valid dan sesuai
+// Token akses Instagram Graph API Anda (pastikan token ini valid dan sesuai)
+const ACCESS_TOKEN = process.env.ACCESS_TOKEN || 'your_access_token_here'; // Ganti dengan token akses Anda
 
 // Fungsi untuk membalas komentar
 const replyToComment = async (commentId, message, accessToken) => {
@@ -31,20 +22,21 @@ const replyToComment = async (commentId, message, accessToken) => {
     return data;
 };
 
-// Endpoint untuk menangani data komentar live
+// Endpoint untuk menangani data komentar dari Instagram
 app.post('/webhook', (req, res) => {
     console.log('Menerima data webhook:');
     console.log(JSON.stringify(req.body, null, 2));  // Menampilkan data webhook yang diterima
 
-    if (req.body.field === 'live_comments') {
-        const comment = req.body.value; // Mengambil data komentar dari webhook
+    // Memeriksa apakah data berkaitan dengan komentar
+    if (req.body.field === 'comments') {
+        const comment = req.body.value;  // Mengambil data komentar dari webhook
 
-        console.log('Komentar live diterima:');
+        console.log('Komentar diterima:');
         console.log(`Komentar ID: ${comment.id}`);
         console.log(`Dari pengguna: ${comment.from.username} (${comment.from.id})`);
         console.log(`Komentar: ${comment.text}`);
 
-        // Balas komentar
+        // Mengirimkan balasan otomatis
         const replyMessage = 'Terima kasih atas komentarnya!';
         replyToComment(comment.id, replyMessage, ACCESS_TOKEN)
             .then(response => {
