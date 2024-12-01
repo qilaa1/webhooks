@@ -34,32 +34,41 @@ const replyToComment = async (commentId, message, accessToken) => {
 };
 
 // Endpoint untuk menangani data komentar dari Instagram
-app.post('/webhook', (req, res) => {
+app.post('/webhook', async (req, res) => {
     console.log('Menerima data webhook:');
     console.log(JSON.stringify(req.body, null, 2));  // Menampilkan data webhook yang diterima
 
     // Memeriksa apakah data berkaitan dengan komentar
-    if (req.body.field === 'comments') {
-        const comment = req.body.value;  // Mengambil data komentar dari webhook
+    if (req.body.entry && req.body.entry[0].changes) {
+        const changes = req.body.entry[0].changes;
 
-        console.log('Komentar diterima:');
-        console.log(`Komentar ID: ${comment.id}`);
-        console.log(`Dari pengguna: ${comment.from.username}`);
+        for (let change of changes) {
+            if (change.field === 'comments') {
+                const comment = change.value;  // Mengambil data komentar dari webhook
 
-        // Membalas komentar dengan pesan otomatis
-        replyToComment(comment.id, 'Terima kasih atas komentar Anda!', ACCESS_TOKEN)
-            .then(response => {
-                console.log('Komentar berhasil dibalas:', response);
-                res.status(200).send('Komentar berhasil dibalas');
-            })
-            .catch(error => {
-                console.error('Error membalas komentar:', error);
-                res.status(500).send('Gagal membalas komentar');
-            });
-    } else {
-        res.status(200).send('Webhook diterima');
+                console.log('Komentar diterima:');
+                console.log(`Komentar ID: ${comment.comment_id}`);
+                console.log(`Dari pengguna: ${comment.from.username}`);
+                console.log(`Isi komentar: ${comment.message}`);
+
+                // Menjawab komentar dengan pesan balasan
+                const message = 'Terima kasih telah berkomentar!';  // Pesan balasan otomatis
+                try {
+                    const replyData = await replyToComment(comment.comment_id, message, ACCESS_TOKEN);
+                    console.log('Balasan berhasil:', replyData);
+                } catch (error) {
+                    console.error('Gagal membalas komentar:', error);
+                }
+            }
+        }
     }
+
+    // Kirim respons OK ke Instagram webhook
+    res.status(200).send('Webhook diterima');
 });
 
-// Menjalankan aplikasi pada port 3000 (Vercel akan memilih port otomatis)
-module.exports = app;
+// Menentukan port untuk server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Server berjalan di http://localhost:${PORT}`);
+});
