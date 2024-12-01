@@ -8,29 +8,8 @@ const app = express();
 app.use(bodyParser.json());
 
 const PORT = process.env.PORT || 4000;
-const VERIFY_TOKEN = process.env.VERIFY_TOKEN || 'secure_token_123'; // Ganti dengan token verifikasi Anda
+const VERIFY_TOKEN = process.env.VERIFY_TOKEN || 'secure_token_123'; // Token verifikasi Anda
 const ACCESS_TOKEN = process.env.ACCESS_TOKEN || 'EAA15VDr6ZCaMBO8rBveeQ9yknsjzhJh0jxdREtnjJEBfpvocC9ZAMb3nvJrzrqcEv9AIm3jZB98rBZAmEaeaFF02fW99XZArh8XWB2EZAp9Go1y22eqayoDFnZCYxAeuehqzcwaDicQpGcJr4ZBJbYYLB3QzesaPTlEtbrSelVyspM7FfxydZAxv2I1KaphBmhzZBo8HvHknPelsDMCXaX86EZD'; // Ganti dengan token akses Instagram Graph API Anda
-const IG_USER_ID = '122105310890590854'; // Ganti dengan ID pengguna Instagram Anda
-
-// Halaman tampilan untuk root URL
-app.get('/', (req, res) => {
-    res.send(`
-        <html>
-            <head>
-                <title>Instagram Webhook Server</title>
-            </head>
-            <body>
-                <h1>Instagram Webhook Server</h1>
-                <p>Server for handling Instagram API webhooks.</p>
-                <p>Endpoints:</p>
-                <ul>
-                    <li>GET /webhook - <i>Webhook verification</i></li>
-                    <li>POST /webhook - <i>Receive webhook events</i></li>
-                </ul>
-            </body>
-        </html>
-    `);
-});
 
 // Endpoint untuk verifikasi webhook Instagram
 app.get('/webhook', (req, res) => {
@@ -38,7 +17,6 @@ app.get('/webhook', (req, res) => {
     const token = req.query['hub.verify_token'];
     const challenge = req.query['hub.challenge'];
 
-    // Verifikasi token yang diterima
     if (mode && token === VERIFY_TOKEN) {
         console.log('Webhook verification successful');
         res.status(200).send(challenge);
@@ -48,73 +26,60 @@ app.get('/webhook', (req, res) => {
     }
 });
 
-// Endpoint untuk menerima webhook event
+// Endpoint untuk menerima webhook event dan membalas komentar otomatis
 app.post('/webhook', async (req, res) => {
     const data = req.body;
 
-    // Pastikan data yang diterima valid
-    if (data && data.entry && Array.isArray(data.entry)) {
-        // Proses setiap entri
-        data.entry.forEach(entry => {
-            // Cek jika perubahan berhubungan dengan komentar
-            if (entry.changes && Array.isArray(entry.changes)) {
-                entry.changes.forEach(change => {
-                    if (change.field === 'comments') {
-                        const commentData = change.value;
+    // Pastikan ada perubahan komentar di event webhook
+    if (data.entry && data.entry[0].changes) {
+        const changes = data.entry[0].changes;
 
-                        // Ekstrak ID media dan komentar
-                        const mediaId = commentData.media.id; // ID media
-                        const commentText = commentData.text; // Isi komentar
+        // Looping setiap perubahan
+        changes.forEach(async (change) => {
+            if (change.field === 'comments') {
+                const mediaId = change.value.media.id; // ID media yang dikomentari
+                const commentId = change.value.id; // ID komentar
+                const commentText = change.value.text; // Isi komentar
 
-                        console.log(`Menerima komentar: "${commentText}" pada media ID: ${mediaId}`);
+                console.log('Media ID:', mediaId);
+                console.log('Comment ID:', commentId);
+                console.log('Comment Text:', commentText);
 
-                        // Kirim komentar balasan menggunakan Graph API
-                        sendInstagramComment(mediaId, "Terima kasih atas komentarnya!", ACCESS_TOKEN);
-                    }
-                });
+                // Kirim balasan komentar otomatis
+                const responseText = 'Terima kasih atas komentarnya!';
+                await sendCommentResponse(mediaId, responseText);
             }
         });
-
-        // Kirim respons ke Instagram agar webhook diproses dengan sukses
-        res.status(200).send('EVENT_RECEIVED');
-    } else {
-        res.status(400).send('Bad Request');
     }
+
+    // Kirim status OK setelah memproses
+    res.status(200).send('EVENT_RECEIVED');
 });
 
-// Fungsi untuk mengambil semua media dan mengomentari mereka
-async function commentOnAllPosts() {
-    // Ambil semua media dari akun Instagram
-    const mediaResponse = await fetch(`https://graph.facebook.com/v12.0/${IG_USER_ID}/media?access_token=${ACCESS_TOKEN}`);
-    const mediaData = await mediaResponse.json();
-
-    if (mediaData.data) {
-        // Loop melalui semua media dan tambahkan komentar
-        mediaData.data.forEach(async (media) => {
-            const mediaId = media.id; // ID media untuk setiap postingan
-            await sendInstagramComment(mediaId, "Komentar otomatis untuk semua postingan!", ACCESS_TOKEN);
-        });
-    }
-}
-
-// Fungsi untuk mengirimkan komentar ke media menggunakan Graph API
-async function sendInstagramComment(mediaId, message, accessToken) {
-    const response = await fetch(`https://graph.facebook.com/v12.0/${mediaId}/comments?message=${encodeURIComponent(message)}&access_token=${accessToken}`, {
+// Fungsi untuk mengirimkan komentar balasan menggunakan Instagram Graph API
+async function sendCommentResponse(mediaId, responseText) {
+    const url = `https://graph.facebook.com/v12.0/${mediaId}/comments`;
+    const params = {
         method: 'POST',
-    });
+        body: JSON.stringify({
+            message: responseText,
+            access_token: ACCESS_TOKEN,
+        }),
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    };
 
-    const data = await response.json();
-    if (data.error) {
-        console.error('Error sending comment:', data.error);
-    } else {
-        console.log(`Komentar berhasil ditambahkan ke media ID ${mediaId}`);
+    try {
+        const res = await fetch(url, params);
+        const data = await res.json();
+        console.log('Response:', data); // Menampilkan response dari API
+    } catch (error) {
+        console.error('Error sending comment:', error);
     }
 }
 
-// Jalankan server pada port yang sudah ditentukan
+// Menjalankan server
 app.listen(PORT, () => {
-    console.log(`Server berjalan pada port ${PORT}`);
-
-    // Coba mengomentari semua postingan setiap kali server dimulai (opsional)
-    commentOnAllPosts();
+    console.log(`Server is running on port ${PORT}`);
 });
