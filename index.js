@@ -26,8 +26,8 @@ app.get('/privacy_policy', (_req, res) => {
 const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
 
 // Fungsi untuk membalas komentar
-const replyToComment = async (commentId, message, accessToken) => {
-    const replyUrl = `https://graph.facebook.com/v21.0/${commentId}/comments?access_token=${accessToken}`;
+const replyToComment = async (commentId, message, ACCESS_TOKEN) => {
+    const replyUrl = `https://graph.facebook.com/v21.0/${commentId}/comments?access_token=${ACCESS_TOKEN}`;
     
     const response = await fetch(replyUrl, {
         method: 'POST',
